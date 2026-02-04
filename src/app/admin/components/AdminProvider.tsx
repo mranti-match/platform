@@ -40,12 +40,19 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         userData = userDoc.data();
                     } else {
                         // 2. Try to find by email (for legacy or manual records)
+                        const userEmailNormalized = currentUser.email?.toLowerCase();
                         const qEmail = query(usersRef, where('email', '==', currentUser.email));
-                        querySnapshot = await getDocs(qEmail);
+                        const qEmailLower = query(usersRef, where('email', '==', userEmailNormalized));
 
-                        if (!querySnapshot.empty) {
-                            userDoc = querySnapshot.docs[0];
+                        let emailSnap = await getDocs(qEmail);
+                        if (emailSnap.empty && userEmailNormalized !== currentUser.email) {
+                            emailSnap = await getDocs(qEmailLower);
+                        }
+
+                        if (!emailSnap.empty) {
+                            userDoc = emailSnap.docs[0];
                             userData = userDoc.data();
+                            console.log("Found user via email backup search:", currentUser.email);
                             // Link existing record to this UID
                             await updateDoc(doc(db, 'users', userDoc.id), {
                                 uid: currentUser.uid,
@@ -92,26 +99,25 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         setRole(currentRole);
                         setProfile({ id: userDoc?.id, ...userData });
                     } else {
-                        // 3. Create a default profile if none exists
-                        const userEmail = currentUser.email?.toLowerCase() || '';
-                        const isAdminEmail = userEmail.endsWith('@mranti.my');
+                        const userEmailNormalized = currentUser.email?.toLowerCase() || '';
+                        const isAdminEmail = userEmailNormalized.endsWith('@mranti.my');
                         let newRole = 'User';
-                        if (userEmail === 'afnizanfaizal@mranti.my') {
+                        if (userEmailNormalized === 'afnizanfaizal@mranti.my') {
                             newRole = 'Super Admin';
-                        } else if (isAdminEmail || userEmail === 'sherry@mranti.my') {
+                        } else if (isAdminEmail || userEmailNormalized === 'sherry@mranti.my') {
                             newRole = 'Admin';
                         }
 
                         const newProfile = {
                             uid: currentUser.uid,
-                            email: currentUser.email,
+                            email: currentUser.email, // Store the original but search using normalized
                             displayName: currentUser.displayName || currentUser.email?.split('@')[0],
-                            fullName: currentUser.displayName || currentUser.email?.split('@')[0], // Sync with potential label usage
+                            fullName: currentUser.displayName || currentUser.email?.split('@')[0],
                             role: newRole,
                             active: true,
                             createdAt: serverTimestamp(),
                             lastLogin: serverTimestamp(),
-                            organization: currentUser.email?.includes('mranti.my') ? 'MRANTI' : 'Independent'
+                            organization: isAdminEmail ? 'MRANTI' : 'Independent'
                         };
 
                         // Use UID as document ID for new users to prevent duplicates

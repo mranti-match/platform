@@ -20,19 +20,19 @@ export default function SignupPage() {
 
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
+        const cleanEmail = email.trim().toLowerCase();
         setLoading(true);
         setError('');
 
         try {
             // 1. Create Auth User
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
             const user = userCredential.user;
 
-            // 2. Create Firestore User Record with default role "User"
             await createAppUser({
                 uid: user.uid,
-                email: email,
-                displayName: displayName || email.split('@')[0],
+                email: cleanEmail,
+                displayName: displayName || cleanEmail.split('@')[0],
                 role: 'User',
                 organization: organization || 'Individual Stakeholder',
                 active: true
