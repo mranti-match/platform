@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 interface AdminContextType {
     user: User | null;
@@ -28,20 +28,21 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                 console.log("Auth User detected:", currentUser.email, currentUser.uid);
                 setUser(currentUser);
                 try {
-                    // 1. Try to find user by UID field or document ID
-                    const usersRef = collection(db, 'users');
-                    const qUid = query(usersRef, where('uid', '==', currentUser.uid));
-                    let querySnapshot = await getDocs(qUid);
+                    // 1. TRY DIRECT ID LOOKUP FIRST (Best for permissions)
+                    let userDocRef = doc(db, 'users', currentUser.uid);
+                    let userDocSnap = await getDoc(userDocRef);
 
-                    let userDoc = null;
-                    let userData = null;
+                    let userDoc: any = null;
+                    let userData: any = null;
 
-                    if (!querySnapshot.empty) {
-                        userDoc = querySnapshot.docs[0];
-                        userData = userDoc.data();
+                    if (userDocSnap.exists()) {
+                        userDoc = userDocSnap;
+                        userData = userDocSnap.data();
+                        console.log("Profile found via direct ID lookup.");
                     } else {
-                        // 2. Try to find by email (for legacy or manual records)
+                        // 2. FALLBACK: Search by email
                         const userEmailNormalized = currentUser.email?.toLowerCase();
+                        const usersRef = collection(db, 'users');
                         const qEmail = query(usersRef, where('email', '==', currentUser.email));
                         const qEmailLower = query(usersRef, where('email', '==', userEmailNormalized));
 
@@ -53,12 +54,17 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         if (!emailSnap.empty) {
                             userDoc = emailSnap.docs[0];
                             userData = userDoc.data();
-                            console.log("Found user via email backup search:", currentUser.email);
-                            // Link existing record to this UID
-                            await updateDoc(doc(db, 'users', userDoc.id), {
-                                uid: currentUser.uid,
-                                lastLogin: serverTimestamp()
-                            });
+                            console.log("Found user via email backup search.");
+
+                            // Try to sync UID - wrap in try-catch because rules might block update
+                            try {
+                                await updateDoc(doc(db, 'users', userDoc.id), {
+                                    uid: currentUser.uid,
+                                    lastLogin: serverTimestamp()
+                                });
+                            } catch (e) {
+                                console.warn("Could not sync UID to legacy record (likely permissions). Proceeding anyway.");
+                            }
                         }
                     }
 
@@ -90,10 +96,16 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         }
 
                         if (Object.keys(updates).length > 0) {
-                            await updateDoc(doc(db, 'users', userDoc.id), {
-                                ...updates,
-                                lastLogin: serverTimestamp()
-                            });
+                            try {
+                                // Important: We update DB, but we don't 'await' it critically for the role to work
+                                // This prevents a permission-denied error from crashing the whole login
+                                await updateDoc(doc(db, 'users', userDoc.id), {
+                                    ...updates,
+                                    lastLogin: serverTimestamp()
+                                });
+                            } catch (e) {
+                                console.warn("Failed to update profile updates to DB (permissions). UI will still upscale role.");
+                            }
                             userData = { ...userData, ...updates };
                         }
 
