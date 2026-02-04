@@ -124,10 +124,15 @@ export default function AdminPage() {
                         <span className={styles.statLabel}>Applications Evaluated</span>
                         <span className={styles.statValue}>
                             {userProposals.filter(p => {
-                                const approver = p.approved_by?.toLowerCase();
+                                const approver = p.approved_by?.toString();
+                                if (!approver) return false;
+
                                 const myUid = user?.uid;
-                                const myEmail = user?.email?.toLowerCase();
-                                return approver === myUid || (approver && approver === myEmail);
+                                const myEmail = user?.email;
+
+                                return approver === myUid ||
+                                    approver === myEmail ||
+                                    approver.toLowerCase() === myEmail?.toLowerCase();
                             }).length}
                         </span>
                         <span className={styles.statSubValue}>Total decisions made</span>
@@ -138,17 +143,31 @@ export default function AdminPage() {
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
                             <span className={`${styles.statValue} ${styles.statGreen}`}>
                                 {userProposals.filter(p => {
-                                    const approver = p.approved_by?.toLowerCase();
-                                    const myEmail = user?.email?.toLowerCase();
-                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                    if (p.status !== 'Approved') return false;
+                                    const approver = p.approved_by?.toString();
+                                    if (!approver) return false;
+
+                                    const myUid = user?.uid;
+                                    const myEmail = user?.email;
+
+                                    return approver === myUid ||
+                                        approver === myEmail ||
+                                        approver.toLowerCase() === myEmail?.toLowerCase();
                                 }).length}
                             </span>
                             <span style={{ fontSize: '1.5rem', opacity: 0.3 }}>/</span>
                             <span className={`${styles.statValue} ${styles.statRed}`}>
                                 {userProposals.filter(p => {
-                                    const approver = p.approved_by?.toLowerCase();
-                                    const myEmail = user?.email?.toLowerCase();
-                                    return p.status === 'Rejected' && (approver === user?.uid || approver === myEmail);
+                                    if (p.status !== 'Rejected') return false;
+                                    const approver = p.approved_by?.toString();
+                                    if (!approver) return false;
+
+                                    const myUid = user?.uid;
+                                    const myEmail = user?.email;
+
+                                    return approver === myUid ||
+                                        approver === myEmail ||
+                                        approver.toLowerCase() === myEmail?.toLowerCase();
                                 }).length}
                             </span>
                         </div>
@@ -179,9 +198,16 @@ export default function AdminPage() {
                             </thead>
                             <tbody>
                                 {userProposals.filter(p => {
-                                    const approver = p.approved_by?.toLowerCase();
-                                    const myEmail = user?.email?.toLowerCase();
-                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                    if (p.status !== 'Approved') return false;
+                                    const approver = p.approved_by?.toString();
+                                    if (!approver) return false;
+
+                                    const myUid = user?.uid;
+                                    const myEmail = user?.email;
+
+                                    return approver === myUid ||
+                                        approver === myEmail ||
+                                        approver.toLowerCase() === myEmail?.toLowerCase();
                                 }).map(proposal => (
                                     <tr key={proposal.id}>
                                         <td className={styles.postTitleCell}>
@@ -207,9 +233,16 @@ export default function AdminPage() {
                                     </tr>
                                 ))}
                                 {userProposals.filter(p => {
-                                    const approver = p.approved_by?.toLowerCase();
-                                    const myEmail = user?.email?.toLowerCase();
-                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                    if (p.status !== 'Approved') return false;
+                                    const approver = p.approved_by?.toString();
+                                    if (!approver) return false;
+
+                                    const myUid = user?.uid;
+                                    const myEmail = user?.email;
+
+                                    return approver === myUid ||
+                                        approver === myEmail ||
+                                        approver.toLowerCase() === myEmail?.toLowerCase();
                                 }).length === 0 && (
                                         <tr>
                                             <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--foreground-muted)' }}>
