@@ -16,7 +16,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return hasRole('Admin');
+      return hasRole('Admin') || (isAuthenticated() && request.auth.token.email.lower().endsWith('@mranti.my'));
     }
 
     function isSuperAdmin() {

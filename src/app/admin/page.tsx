@@ -183,7 +183,7 @@ export default function AdminPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {userProposals.filter(p => p.status === 'Approved' && p.approved_by === user?.uid).length === 0 && (
+                                {userProposals.filter(p => (p.status === 'Approved' || p.status === 'Rejected') && (p.approved_by === user?.uid || p.approved_by === user?.email)).length === 0 && (
                                     <tr>
                                         <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--foreground-muted)' }}>
                                             You haven't approved any proposals yet.
