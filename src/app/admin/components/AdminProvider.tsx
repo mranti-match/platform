@@ -54,16 +54,54 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         }
                     }
 
-                    if (userData) {
-                        setRole(userData.role || 'User');
+                    if (userData && userDoc) {
+                        let currentRole = userData.role || 'User';
+                        const isAdminEmail = currentUser.email?.endsWith('@mranti.my');
+
+                        // Upscale logic for existing records
+                        if (currentUser.email === 'afnizanfaizal@mranti.my') {
+                            currentRole = 'Super Admin';
+                        } else if (isAdminEmail && (currentRole === 'User' || !currentRole)) {
+                            currentRole = 'Admin';
+                        }
+
+                        // Sync missing display fields
+                        const updates: any = {};
+                        if (!userData.fullName && (userData.displayName || currentUser.displayName)) {
+                            updates.fullName = userData.displayName || currentUser.displayName || currentUser.email?.split('@')[0];
+                        }
+                        if (!userData.organization && isAdminEmail) {
+                            updates.organization = 'MRANTI';
+                        }
+                        if (currentRole !== userData.role) {
+                            updates.role = currentRole;
+                        }
+
+                        if (Object.keys(updates).length > 0) {
+                            await updateDoc(doc(db, 'users', userDoc.id), {
+                                ...updates,
+                                lastLogin: serverTimestamp()
+                            });
+                            userData = { ...userData, ...updates };
+                        }
+
+                        setRole(currentRole);
                         setProfile({ id: userDoc?.id, ...userData });
                     } else {
                         // 3. Create a default profile if none exists
-                        const newRole = currentUser.email === 'afnizanfaizal@mranti.my' ? 'Super Admin' : 'User';
+                        const isAdminEmail = currentUser.email?.endsWith('@mranti.my');
+                        let newRole = 'User';
+                        if (currentUser.email === 'afnizanfaizal@mranti.my') {
+                            newRole = 'Super Admin';
+                        } else if (isAdminEmail || currentUser.email === 'sherry@mranti.my') {
+                            newRole = 'Admin';
+                        }
+
                         const newProfile = {
                             uid: currentUser.uid,
                             email: currentUser.email,
                             displayName: currentUser.displayName || currentUser.email?.split('@')[0],
+                            fullName: currentUser.displayName || currentUser.email?.split('@')[0], // Sync with potential label usage
                             role: newRole,
                             active: true,
                             createdAt: serverTimestamp(),

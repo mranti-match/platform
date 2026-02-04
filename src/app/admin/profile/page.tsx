@@ -136,7 +136,7 @@ export default function ProfilePage() {
                                             required
                                         />
                                     ) : (
-                                        <div style={{ fontSize: '1rem', fontWeight: 600 }}>{profile?.displayName || 'Not set'}</div>
+                                        <div style={{ fontSize: '1rem', fontWeight: 600 }}>{profile?.fullName || profile?.displayName || 'Not set'}</div>
                                     )}
                                 </div>
                                 <div>
