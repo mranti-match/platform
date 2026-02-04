@@ -1,0 +1,120 @@
+.chartWrapper {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.chartTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: var(--foreground);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Country Stats */
+.countryList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.countryItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.countryInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.countryDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.countryName {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+}
+
+.countryCount {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--foreground-muted);
+    background: var(--surface-highlight);
+    padding: 2px 8px;
+    border-radius: 100px;
+}
+
+/* Top Posts */
+.postList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.postItem {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.postItem:hover {
+    background: var(--surface-highlight);
+}
+
+.postRank {
+    font-size: 1rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.2);
+    font-style: italic;
+    min-width: 24px;
+}
+
+.postInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.postMeta {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+}
+
+.postTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.postViews {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+}
+
+.empty {
+    font-size: 0.875rem;
+    color: var(--foreground-muted);
+    text-align: center;
+    padding: 2rem 0;
+}

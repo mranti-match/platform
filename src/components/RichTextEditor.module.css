@@ -1,0 +1,59 @@
+.editorContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.editorContainer :global(.ql-toolbar) {
+    background: #121215;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+}
+
+.editorContainer :global(.ql-container) {
+    border: none;
+    font-family: inherit;
+    font-size: 1.0625rem;
+    color: var(--foreground);
+    min-height: 400px;
+    background: #09090b;
+}
+
+.editorContainer :global(.ql-editor) {
+    padding: 2rem;
+    line-height: 1.8;
+}
+
+.editorContainer :global(.ql-editor.ql-blank::before) {
+    color: #3f3f46;
+    font-style: normal;
+    left: 2rem;
+}
+
+/* Toolbar Icon Colors */
+.editorContainer :global(.ql-snow .ql-stroke) {
+    stroke: var(--foreground-muted);
+}
+
+.editorContainer :global(.ql-snow .ql-fill) {
+    fill: var(--foreground-muted);
+}
+
+.editorContainer :global(.ql-snow .ql-picker) {
+    color: var(--foreground-muted);
+}
+
+.editorContainer :global(.ql-snow.ql-toolbar button:hover .ql-stroke) {
+    stroke: var(--primary);
+}
+
+.editorContainer :global(.ql-snow.ql-toolbar button.ql-active .ql-stroke) {
+    stroke: var(--primary);
+}
+
+.loadingPlaceholder {
+    height: 400px;
+    background: #09090b;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}

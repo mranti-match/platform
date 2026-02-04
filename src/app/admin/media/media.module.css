@@ -1,0 +1,99 @@
+.mediaGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.mediaItem {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.mediaItem:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+}
+
+.imageWrapper {
+    aspect-ratio: 1;
+    position: relative;
+    background: #000;
+}
+
+.mediaInfo {
+    padding: 1rem;
+}
+
+.mediaName {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.5rem;
+}
+
+.mediaMeta {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+    display: flex;
+    justify-content: space-between;
+}
+
+.mediaActions {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.mediaItem:hover .mediaActions {
+    opacity: 1;
+}
+
+.actionBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    transition: background 0.2s ease;
+}
+
+.actionBtn:hover {
+    background: var(--primary);
+}
+
+.deleteBtn:hover {
+    background: #ff4d4d;
+}
+
+.copyFeedback {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 99px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 45, 122, 0.3);
+    z-index: 1000;
+}

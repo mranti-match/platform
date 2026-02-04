@@ -1,0 +1,356 @@
+.formContainer {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+.mainCol {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.titleInput {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: var(--font-display);
+}
+
+.titleInput:focus {
+    border-color: var(--primary);
+}
+
+
+/* Editor Styling Overrides */
+.editorWrapper {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Excerpt Section */
+.excerptSection {
+    background: #121215;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.excerptSection label {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.excerptTextarea {
+    width: 100%;
+    background: #09090b;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    color: var(--foreground);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    min-height: 120px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+}
+
+.contentTextarea {
+    width: 100%;
+    background: #09090b;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    color: var(--foreground);
+    font-family: inherit;
+    font-size: 0.9375rem;
+    min-height: 500px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+}
+
+.excerptHelp {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+    margin-top: 0.75rem;
+}
+
+/* Sidebar Widgets */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.widget {
+    background: #121215;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.widgetHeader {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.widgetBody {
+    padding: 1.25rem;
+}
+
+/* Publish Widget */
+.publishMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--foreground);
+}
+
+.metaLabel {
+    color: var(--foreground-muted);
+    min-width: 80px;
+}
+
+.metaAction {
+    margin-left: auto;
+    color: var(--primary);
+    text-decoration: underline;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.publishActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+}
+
+.btnSaveDraft {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.btnPublish {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    flex: 1;
+}
+
+.widgetFooter {
+    padding: 1rem 1.25rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid var(--border);
+}
+
+.btnTrash {
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Categories Widget */
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.tab {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--foreground-muted);
+    cursor: pointer;
+}
+
+.tabActive {
+    color: var(--foreground);
+    position: relative;
+}
+
+.categoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 1.25rem;
+}
+
+.categoryItem {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.categoryItem input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
+.btnAddCategory {
+    color: var(--primary);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Tags Widget */
+.tagInputBox {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tagInput {
+    background: #09090b;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    color: white;
+    font-size: 0.875rem;
+    outline: none;
+    flex: 1;
+}
+
+.btnAddTag {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.tagsDisplay {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.removeTag {
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.tagHelp {
+    font-size: 0.6875rem;
+    color: var(--foreground-muted);
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+/* Header Buttons */
+.btnPreview {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+/* Image Upload (Cover) */
+.coverUpload {
+    margin-top: 1.5rem;
+}
+
+.imagePreview {
+    width: 100%;
+    height: 160px;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 1rem;
+    border: 1px solid var(--border);
+}
+
+.uploading {
+    font-size: 0.75rem;
+    color: var(--primary);
+    margin-top: 0.5rem;
+}

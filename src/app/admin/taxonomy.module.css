@@ -1,0 +1,170 @@
+.container {
+    padding: 1rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+/* Form Styling */
+.formSection h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--foreground);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.formGroup label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground-muted);
+}
+
+.input,
+.textarea {
+    background: var(--surface-highlight);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--foreground);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+    border-color: var(--primary);
+}
+
+.helpText {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+    line-height: 1.4;
+}
+
+.textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.btnSubmit {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.btnSubmit:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.btnSubmit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Table Styling */
+.listSection {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--foreground-muted);
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+}
+
+.table td {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+    vertical-align: top;
+}
+
+.taxonomyName {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.rowActions {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.actionBtn {
+    color: var(--foreground-muted);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-weight: 500;
+}
+
+.actionBtn:hover {
+    color: var(--foreground);
+}
+
+.deleteBtn:hover {
+    color: #ef4444;
+}
+
+.slugCell {
+    color: var(--foreground-muted);
+}
+
+.countCell {
+    color: var(--foreground-muted);
+}
+
+@media (max-width: 1024px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}

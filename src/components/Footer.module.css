@@ -1,0 +1,136 @@
+.footer {
+    background-color: var(--surface);
+    color: var(--foreground);
+    padding: var(--gap-lg) 0 var(--gap-md);
+    border-top: 1px solid var(--border);
+}
+
+.footerBrandSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    max-width: 800px;
+}
+
+.logoWrapper {
+    display: flex;
+    align-items: center;
+}
+
+.footerLogo {
+    height: auto;
+    width: 100%;
+    max-width: 280px;
+    object-fit: contain;
+}
+
+.portalTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--foreground);
+    letter-spacing: -0.01em;
+}
+
+.portalDescription {
+    color: var(--foreground-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 600px;
+}
+
+.socialLinks {
+    display: flex;
+    gap: var(--gap-md);
+    margin-top: 1.5rem;
+}
+
+.socialIcon {
+    color: var(--foreground);
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.socialIcon:hover {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+/* Obsolete columns removed */
+
+.emailInput {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #ffffff;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.emailInput:focus {
+    border-color: var(--primary);
+}
+
+.subscribeBtn {
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+    white-space: nowrap;
+}
+
+.subscribeBtn:hover {
+    filter: brightness(1.1);
+}
+
+.bottomBar {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--foreground-muted);
+    font-size: 0.85rem;
+}
+
+.bottomLinks {
+    display: flex;
+    gap: var(--gap-md);
+}
+
+.bottomLinks a {
+    color: var(--foreground-muted);
+}
+
+.bottomLinks a:hover {
+    color: var(--foreground);
+}
+
+@media (max-width: 992px) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+        gap: var(--gap-lg);
+    }
+
+    .aboutText {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .bottomBar {
+        flex-direction: column;
+        gap: var(--gap-sm);
+        text-align: center;
+    }
+}

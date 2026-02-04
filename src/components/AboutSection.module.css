@@ -1,0 +1,116 @@
+.missionSection {
+    background-color: #ffffff;
+    padding: var(--gap-xl) 0;
+    position: relative;
+    z-index: 5;
+    box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.05);
+    /* Soft shadow over the hero */
+}
+
+.content {
+    position: relative;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--gap-lg);
+    align-items: center;
+}
+
+.label {
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.description {
+    font-size: 1.125rem;
+    color: var(--foreground-muted);
+    margin-top: 1.5rem;
+    margin-bottom: 3rem;
+    line-height: 1.8;
+}
+
+.stats {
+    display: flex;
+    gap: var(--gap-lg);
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.statValue {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--foreground);
+    font-family: var(--font-display);
+}
+
+.statLabel {
+    font-size: 0.875rem;
+    color: var(--foreground-muted);
+}
+
+.visualSide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.imageContainer {
+    padding: 1.6rem;
+    /* 20% smaller than 2rem */
+    position: relative;
+}
+
+.circularWrapper {
+    width: 380px;
+    height: 380px;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18);
+    /* ~20% more visibility than 0.15 */
+    border: 12px solid #ffffff;
+    background: #f0f0f0;
+}
+
+.aboutImage {
+    object-fit: cover;
+}
+
+@media (max-width: 992px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        flex-wrap: wrap;
+        gap: var(--gap-md);
+    }
+
+    .circularWrapper {
+        width: 300px;
+        height: 300px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .circularWrapper {
+        width: 260px;
+        height: 260px;
+    }
+}
