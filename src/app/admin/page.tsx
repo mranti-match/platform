@@ -54,45 +54,51 @@ export default function AdminPage() {
 
     async function loadDashboardData() {
         setLoading(true);
+        console.log("Dashboard: Starting data fetch for", user?.email, "as", role);
         try {
             // Fetch products and proposals
-            // If Admin or Super Admin, fetch global data (isAdmin = true)
-            // If regular User, fetch only their own data
             const [products, proposals, problems] = await Promise.all([
                 getAllProducts(isAdmin, isAdmin ? undefined : user?.uid),
                 getAllProposals(isAdmin, isAdmin ? undefined : user?.uid),
                 getAllProblemStatements()
-            ]);
+            ]).catch(err => {
+                console.error("Dashboard: One or more primary queries failed critically:", err);
+                throw err;
+            });
 
+            console.log(`Dashboard: Loaded ${products.length} products and ${proposals.length} proposals.`);
             setUserProducts(products);
             setUserProposals(proposals);
             setAllProblems(problems);
 
             if (isAdmin) {
-                // Admin View - Analytical Dashboard (still needed for Super Admin view)
-                const [postsData, daily, countries, top] = await Promise.all([
-                    import('@/lib/posts').then(m => m.getAllPosts()),
-                    getDailyStats(),
-                    getCountryStats(),
-                    getTopPosts(5)
-                ]);
+                try {
+                    console.log("Dashboard: Fetching admin analytics...");
+                    const [postsData, daily, countries, top] = await Promise.all([
+                        import('@/lib/posts').then(m => m.getAllPosts()),
+                        getDailyStats(),
+                        getCountryStats(),
+                        getTopPosts(5)
+                    ]);
 
-                const totalViews = daily.reduce((acc, curr) => acc + curr.visits, 0);
+                    const totalViews = daily.reduce((acc, curr) => acc + curr.visits, 0);
+                    setStats({
+                        posts: postsData.length,
+                        categories: 0,
+                        views: totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews.toString()
+                    });
 
-                setStats({
-                    posts: postsData.length,
-                    categories: 0,
-                    views: totalViews >= 1000 ? `${(totalViews / 1000).toFixed(1)}k` : totalViews.toString()
-                });
-
-                setAnalytics({
-                    daily,
-                    countries,
-                    topPosts: top
-                });
+                    setAnalytics({ daily, countries, topPosts: top });
+                    console.log("Dashboard: Analytics loaded.");
+                } catch (analyticsErr) {
+                    console.error("Dashboard: Analytics fetch failed (check security rules for analytics/post_views):", analyticsErr);
+                }
             }
-        } catch (error) {
-            console.error('Failed to load dashboard data:', error);
+        } catch (error: any) {
+            console.error('Dashboard: Data load error:', error.message || error);
+            if (error.code === 'permission-denied') {
+                console.error('CRITICAL: Firestore rejected a query. Check firestore.rules for admin permissions.');
+            }
         } finally {
             setLoading(false);
         }
