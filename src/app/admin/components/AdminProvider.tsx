@@ -25,6 +25,7 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
+                console.log("Auth User detected:", currentUser.email, currentUser.uid);
                 setUser(currentUser);
                 try {
                     // 1. Try to find user by UID field or document ID
@@ -96,6 +97,7 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                             userData = { ...userData, ...updates };
                         }
 
+                        console.log("User Profile Loaded:", userData.email, "Role:", currentRole);
                         setRole(currentRole);
                         setProfile({ id: userDoc?.id, ...userData });
                     } else {
