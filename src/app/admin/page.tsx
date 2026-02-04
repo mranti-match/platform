@@ -117,7 +117,12 @@ export default function AdminPage() {
                     <div className={styles.simpleStatBox}>
                         <span className={styles.statLabel}>Applications Evaluated</span>
                         <span className={styles.statValue}>
-                            {userProposals.filter(p => p.approved_by === user?.uid || (p.approved_by && p.approved_by === user?.email)).length}
+                            {userProposals.filter(p => {
+                                const approver = p.approved_by?.toLowerCase();
+                                const myUid = user?.uid;
+                                const myEmail = user?.email?.toLowerCase();
+                                return approver === myUid || (approver && approver === myEmail);
+                            }).length}
                         </span>
                         <span className={styles.statSubValue}>Total decisions made</span>
                     </div>
@@ -126,11 +131,19 @@ export default function AdminPage() {
                         <span className={styles.statLabel}>Approved & Rejected</span>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
                             <span className={`${styles.statValue} ${styles.statGreen}`}>
-                                {userProposals.filter(p => p.status === 'Approved' && (p.approved_by === user?.uid || p.approved_by === user?.email)).length}
+                                {userProposals.filter(p => {
+                                    const approver = p.approved_by?.toLowerCase();
+                                    const myEmail = user?.email?.toLowerCase();
+                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                }).length}
                             </span>
                             <span style={{ fontSize: '1.5rem', opacity: 0.3 }}>/</span>
                             <span className={`${styles.statValue} ${styles.statRed}`}>
-                                {userProposals.filter(p => p.status === 'Rejected' && (p.approved_by === user?.uid || p.approved_by === user?.email)).length}
+                                {userProposals.filter(p => {
+                                    const approver = p.approved_by?.toLowerCase();
+                                    const myEmail = user?.email?.toLowerCase();
+                                    return p.status === 'Rejected' && (approver === user?.uid || approver === myEmail);
+                                }).length}
                             </span>
                         </div>
                         <span className={styles.statSubValue}>Your evaluation history</span>
@@ -159,7 +172,11 @@ export default function AdminPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {userProposals.filter(p => (p.status === 'Approved' || p.status === 'Rejected') && (p.approved_by === user?.uid || p.approved_by === user?.email)).map(proposal => (
+                                {userProposals.filter(p => {
+                                    const approver = p.approved_by?.toLowerCase();
+                                    const myEmail = user?.email?.toLowerCase();
+                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                }).map(proposal => (
                                     <tr key={proposal.id}>
                                         <td className={styles.postTitleCell}>
                                             <div style={{ fontWeight: 600 }}>{proposal.project_title}</div>
@@ -183,13 +200,17 @@ export default function AdminPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {userProposals.filter(p => (p.status === 'Approved' || p.status === 'Rejected') && (p.approved_by === user?.uid || p.approved_by === user?.email)).length === 0 && (
-                                    <tr>
-                                        <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--foreground-muted)' }}>
-                                            You haven't approved any proposals yet.
-                                        </td>
-                                    </tr>
-                                )}
+                                {userProposals.filter(p => {
+                                    const approver = p.approved_by?.toLowerCase();
+                                    const myEmail = user?.email?.toLowerCase();
+                                    return p.status === 'Approved' && (approver === user?.uid || approver === myEmail);
+                                }).length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} style={{ textAlign: 'center', padding: '3rem', color: 'var(--foreground-muted)' }}>
+                                                You haven't approved any proposals yet.
+                                            </td>
+                                        </tr>
+                                    )}
                             </tbody>
                         </table>
                     </div>

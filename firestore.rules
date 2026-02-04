@@ -16,7 +16,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return hasRole('Admin') || (isAuthenticated() && request.auth.token.email.lower().endsWith('@mranti.my'));
+      return hasRole('Admin') || (isAuthenticated() && request.auth.token.email.toLower().endsWith('@mranti.my'));
     }
 
     function isSuperAdmin() {
@@ -85,6 +85,17 @@ service cloud.firestore {
     match /project_reports/{reportId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
+    }
+
+    // Analytics & Tracking
+    match /analytics/{docId} {
+      allow read: if isAdmin();
+      allow write: if true; // Allow public to track visits (increment)
+    }
+
+    match /post_views/{postId} {
+      allow read: if isAdmin();
+      allow write: if true; // Allow public to track post views
     }
   }
 }
