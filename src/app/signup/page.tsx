@@ -30,6 +30,7 @@ export default function SignupPage() {
 
             // 2. Create Firestore User Record with default role "User"
             await createAppUser({
+                uid: user.uid,
                 email: email,
                 displayName: displayName || email.split('@')[0],
                 role: 'User',

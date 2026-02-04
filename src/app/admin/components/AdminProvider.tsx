@@ -56,19 +56,23 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
 
                     if (userData && userDoc) {
                         let currentRole = userData.role || 'User';
-                        const isAdminEmail = currentUser.email?.endsWith('@mranti.my');
+                        const userEmail = currentUser.email?.toLowerCase() || '';
+                        const isAdminEmail = userEmail.endsWith('@mranti.my');
 
-                        // Upscale logic for existing records
-                        if (currentUser.email === 'afnizanfaizal@mranti.my') {
+                        // Upscale logic for existing records (Case-insensitive)
+                        if (userEmail === 'afnizanfaizal@mranti.my') {
                             currentRole = 'Super Admin';
-                        } else if (isAdminEmail && (currentRole === 'User' || !currentRole)) {
+                        } else if (isAdminEmail || userEmail === 'sherry@mranti.my') {
                             currentRole = 'Admin';
                         }
 
                         // Sync missing display fields
                         const updates: any = {};
                         if (!userData.fullName && (userData.displayName || currentUser.displayName)) {
-                            updates.fullName = userData.displayName || currentUser.displayName || currentUser.email?.split('@')[0];
+                            updates.fullName = userData.displayName || currentUser.displayName || userEmail.split('@')[0];
+                        }
+                        if (!userData.displayName && (userData.fullName || currentUser.displayName)) {
+                            updates.displayName = userData.fullName || currentUser.displayName || userEmail.split('@')[0];
                         }
                         if (!userData.organization && isAdminEmail) {
                             updates.organization = 'MRANTI';
@@ -89,11 +93,12 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         setProfile({ id: userDoc?.id, ...userData });
                     } else {
                         // 3. Create a default profile if none exists
-                        const isAdminEmail = currentUser.email?.endsWith('@mranti.my');
+                        const userEmail = currentUser.email?.toLowerCase() || '';
+                        const isAdminEmail = userEmail.endsWith('@mranti.my');
                         let newRole = 'User';
-                        if (currentUser.email === 'afnizanfaizal@mranti.my') {
+                        if (userEmail === 'afnizanfaizal@mranti.my') {
                             newRole = 'Super Admin';
-                        } else if (isAdminEmail || currentUser.email === 'sherry@mranti.my') {
+                        } else if (isAdminEmail || userEmail === 'sherry@mranti.my') {
                             newRole = 'Admin';
                         }
 

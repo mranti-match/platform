@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (profile) {
-            setDisplayName(profile.displayName || '');
+            setDisplayName(profile.fullName || profile.displayName || '');
             setOrganization(profile.organization || '');
         }
     }, [profile]);
