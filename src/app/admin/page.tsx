@@ -116,7 +116,9 @@ export default function AdminPage() {
                 <div className={styles.simpleStatsGrid}>
                     <div className={styles.simpleStatBox}>
                         <span className={styles.statLabel}>Applications Evaluated</span>
-                        <span className={styles.statValue}>{userProposals.filter(p => p.approved_by === user?.uid).length}</span>
+                        <span className={styles.statValue}>
+                            {userProposals.filter(p => p.approved_by === user?.uid || (p.approved_by && p.approved_by === user?.email)).length}
+                        </span>
                         <span className={styles.statSubValue}>Total decisions made</span>
                     </div>
 
@@ -124,11 +126,11 @@ export default function AdminPage() {
                         <span className={styles.statLabel}>Approved & Rejected</span>
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
                             <span className={`${styles.statValue} ${styles.statGreen}`}>
-                                {userProposals.filter(p => p.status === 'Approved' && p.approved_by === user?.uid).length}
+                                {userProposals.filter(p => p.status === 'Approved' && (p.approved_by === user?.uid || p.approved_by === user?.email)).length}
                             </span>
                             <span style={{ fontSize: '1.5rem', opacity: 0.3 }}>/</span>
                             <span className={`${styles.statValue} ${styles.statRed}`}>
-                                {userProposals.filter(p => p.status === 'Rejected' && p.approved_by === user?.uid).length}
+                                {userProposals.filter(p => p.status === 'Rejected' && (p.approved_by === user?.uid || p.approved_by === user?.email)).length}
                             </span>
                         </div>
                         <span className={styles.statSubValue}>Your evaluation history</span>
@@ -157,7 +159,7 @@ export default function AdminPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {userProposals.filter(p => p.status === 'Approved' && p.approved_by === user?.uid).map(proposal => (
+                                {userProposals.filter(p => (p.status === 'Approved' || p.status === 'Rejected') && (p.approved_by === user?.uid || p.approved_by === user?.email)).map(proposal => (
                                     <tr key={proposal.id}>
                                         <td className={styles.postTitleCell}>
                                             <div style={{ fontWeight: 600 }}>{proposal.project_title}</div>

@@ -140,18 +140,27 @@ export default function AdminProvider({ children }: { children: React.ReactNode 
                         setProfile({ id: currentUser.uid, ...newProfile });
                     }
 
-                    // 4. HEALING: Sync products and proposals to use current UID
-                    // Only run once per session to avoid overhead
+                    // 5. HEALING: Sync products and proposals to use current UID
                     const healData = async () => {
                         try {
-                            // Fix Proposals
+                            const userEmail = currentUser.email?.toLowerCase();
+                            if (!userEmail) return;
+
+                            // Fix Proposals (Owner)
                             const proposalsRef = collection(db, 'proposals');
-                            const qProp = query(proposalsRef, where('owner_email', '==', currentUser.email));
-                            const propSnap = await getDocs(qProp);
-                            propSnap.docs.forEach(async (pDoc) => {
+                            const qPropOwner = query(proposalsRef, where('owner_email', '==', currentUser.email));
+                            const propOwnerSnap = await getDocs(qPropOwner);
+                            propOwnerSnap.docs.forEach(async (pDoc) => {
                                 if (pDoc.data().owner_id !== currentUser.uid) {
                                     await updateDoc(doc(db, 'proposals', pDoc.id), { owner_id: currentUser.uid });
                                 }
+                            });
+
+                            // Fix Proposals (Approver - handle cases where email was used)
+                            const qPropApprover = query(proposalsRef, where('approved_by', '==', currentUser.email));
+                            const propApproverSnap = await getDocs(qPropApprover);
+                            propApproverSnap.docs.forEach(async (pDoc) => {
+                                await updateDoc(doc(db, 'proposals', pDoc.id), { approved_by: currentUser.uid });
                             });
 
                             // Fix Products (only if stored by email previously)
