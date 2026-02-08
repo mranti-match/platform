@@ -44,10 +44,12 @@ export default function SignupPage() {
             await sendEmailVerification(user);
 
             // 3. Create Profile
+            const finalDisplayName = displayName || cleanEmail.split('@')[0];
             await createAppUser({
                 uid: user.uid,
                 email: cleanEmail,
-                displayName: displayName || cleanEmail.split('@')[0],
+                displayName: finalDisplayName,
+                fullName: finalDisplayName,
                 role: 'User',
                 organization: organization || 'Individual Stakeholder',
                 active: true
@@ -76,10 +78,12 @@ export default function SignupPage() {
 
             if (!existingUser) {
                 // Create profile for new Google user
+                const gDisplayName = user.displayName || user.email?.split('@')[0] || 'Google User';
                 await createAppUser({
                     uid: user.uid,
                     email: user.email || '',
-                    displayName: user.displayName || user.email?.split('@')[0] || 'Google User',
+                    displayName: gDisplayName,
+                    fullName: gDisplayName,
                     role: 'User',
                     organization: 'Google Stakeholder',
                     active: true
