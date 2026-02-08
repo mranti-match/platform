@@ -101,10 +101,12 @@ export default function LoginPage() {
 
             if (!existingUser) {
                 // Create profile for new Google user (allowing login to act as signup)
+                const displayName = user.displayName || user.email?.split('@')[0] || 'Google User';
                 await createAppUser({
                     uid: user.uid,
                     email: user.email || '',
-                    displayName: user.displayName || user.email?.split('@')[0] || 'Google User',
+                    displayName: displayName,
+                    fullName: displayName,
                     role: 'User',
                     organization: 'Google Stakeholder',
                     active: true
