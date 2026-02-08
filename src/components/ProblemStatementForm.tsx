@@ -21,6 +21,7 @@ export default function ProblemStatementForm({ initialData, onSubmit, loading, t
         status: initialData?.status || 'Open' as 'Open' | 'Closed' | 'Draft',
         deadline: initialData?.deadline || '',
         image_url: initialData?.image_url || '',
+        owner_id: initialData?.owner_id || '',
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
