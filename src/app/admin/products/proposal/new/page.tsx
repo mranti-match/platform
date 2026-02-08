@@ -2,22 +2,27 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getProductById, RDProduct } from '@/lib/rd-products';
+import { getProductById as getFirestoreProductById, RDProduct } from '@/lib/rd-products';
+import { getProductById as getRTDBProductById, Product as RTDBProduct } from '@/lib/products';
 import { getProblemStatementById, ProblemStatement } from '@/lib/problem-statements';
 import styles from '../../../admin.module.css';
 import Link from 'next/link';
 import { createProposal } from '@/lib/proposals';
-import { useAdmin } from '../../../components/AdminProvider';
+import { useAdmin } from '@/app/admin/components/AdminProvider';
+import { useToast } from '@/app/admin/components/ToastProvider';
+import { uploadFile } from '@/lib/storage';
 
 export default function NewProposalPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user } = useAdmin();
+    const { showToast } = useToast();
 
     const productId = searchParams.get('product');
     const problemId = searchParams.get('problem');
+    const source = searchParams.get('source') || 'firestore';
 
-    const [product, setProduct] = useState<RDProduct | null>(null);
+    const [product, setProduct] = useState<any | null>(null);
     const [problem, setProblem] = useState<ProblemStatement | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -27,12 +32,14 @@ export default function NewProposalPage() {
         projectTitle: '',
         description: '',
         impactOutcomes: '',
-        documentsUrl: '',
+        documents: [] as { name: string, url: string }[],
         funding: false,
         market: false,
         capacity: false,
         sandbox: false
     });
+
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         async function loadData() {
@@ -40,10 +47,32 @@ export default function NewProposalPage() {
                 setLoading(false);
                 return;
             }
-            const [productData, problemData] = await Promise.all([
-                getProductById(productId),
-                getProblemStatementById(problemId)
-            ]);
+
+            // Fetch product based on source
+            let productData: any = null;
+            if (source === 'rtdb') {
+                const rtdbProd = await getRTDBProductById(productId);
+                if (rtdbProd) {
+                    productData = {
+                        id: rtdbProd.id,
+                        product_name: rtdbProd.product_name,
+                        organization: rtdbProd.company_name,
+                        cover_image: rtdbProd.image_url,
+                        source: 'rtdb'
+                    };
+                }
+            } else {
+                const fsProd = await getFirestoreProductById(productId);
+                if (fsProd) {
+                    productData = {
+                        ...fsProd,
+                        source: 'firestore'
+                    };
+                }
+            }
+
+            const problemData = await getProblemStatementById(problemId);
+
             setProduct(productData);
             setProblem(problemData);
 
@@ -60,6 +89,41 @@ export default function NewProposalPage() {
         loadData();
     }, [productId, problemId]);
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setUploading(true);
+        try {
+            const uploadedDocs = [...formData.documents];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type !== 'application/pdf') {
+                    showToast(`${file.name} is not a PDF file.`, 'error');
+                    continue;
+                }
+                const url = await uploadFile(file, 'proposals/docs');
+                uploadedDocs.push({ name: file.name, url });
+            }
+            setFormData(prev => ({ ...prev, documents: uploadedDocs }));
+            showToast('Documents uploaded successfully.', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('Failed to upload documents.', 'error');
+        } finally {
+            setUploading(false);
+            // Reset input
+            if (e.target) e.target.value = '';
+        }
+    };
+
+    const handleRemoveDocument = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            documents: prev.documents.filter((_, i) => i !== index)
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!product || !problem || !user) return;
@@ -67,7 +131,7 @@ export default function NewProposalPage() {
         // Check if at least one facilitation is selected
         const hasFacilitation = formData.funding || formData.market || formData.capacity || formData.sandbox;
         if (!hasFacilitation) {
-            alert('Please select at least one facilitation option.');
+            showToast('Please select at least one facilitation option.', 'error');
             return;
         }
 
@@ -86,7 +150,7 @@ export default function NewProposalPage() {
                 project_title: formData.projectTitle,
                 description: formData.description,
                 impact_outcomes: formData.impactOutcomes,
-                documents_url: formData.documentsUrl,
+                documents: formData.documents,
                 facilitation: {
                     funding: formData.funding,
                     market: formData.market,
@@ -95,18 +159,24 @@ export default function NewProposalPage() {
                 },
                 status: 'Pending'
             });
-            alert('Proposal submitted successfully!');
-            router.push('/admin');
+            showToast('Proposal submitted successfully!', 'success');
+            router.push('/admin/proposals');
         } catch (error) {
             console.error(error);
-            alert('Failed to submit proposal.');
+            showToast('Failed to submit proposal.', 'error');
         } finally {
             setSubmitting(false);
         }
     };
 
     if (loading) return <div style={{ padding: '2.5rem', color: 'var(--foreground-muted)' }}>Loading proposal form...</div>;
-    if (!product || !problem) return <div style={{ padding: '2.5rem' }}>Missing product or problem information.</div>;
+    if (!product || !problem) return (
+        <div style={{ padding: '2.5rem' }}>
+            <h2>Information Incomplete</h2>
+            <p>We couldn't retrieve the necessary {!product ? 'product' : 'problem statement'} details. Please try initiated the proposal from the Match discovery page.</p>
+            <Link href="/admin/problem-statements" style={{ color: 'var(--primary)', fontWeight: 600, marginTop: '1rem', display: 'inline-block' }}>Return to Dashboard</Link>
+        </div>
+    );
 
     return (
         <div className={styles.mainCol}>
@@ -115,7 +185,7 @@ export default function NewProposalPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                         <Link href={`/admin/products/match/${productId}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>← Back to Matches</Link>
                     </div>
-                    <h1>Create Project Proposal</h1>
+                    <h1>Initiate Collaboration</h1>
                     <p>Submit your R&D solution to address the selected problem statement.</p>
                 </div>
             </div>
@@ -283,27 +353,88 @@ export default function NewProposalPage() {
 
                             <div style={{ marginBottom: '0' }}>
                                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--foreground)' }}>
-                                    Cloud Drive Link <span style={{ fontSize: '0.8rem', fontWeight: 500, opacity: 0.5 }}>(Optional)</span>
+                                    Supporting Documents <span style={{ fontSize: '0.8rem', fontWeight: 500, opacity: 0.5 }}>(PDF Only)</span>
                                 </label>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)', marginBottom: '1rem' }}>Include links to your proposal deck or other supporting documents.</p>
-                                <div style={{ position: 'relative' }}>
-                                    <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>🔗</span>
-                                    <input
-                                        type="url"
-                                        value={formData.documentsUrl}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, documentsUrl: e.target.value }))}
-                                        placeholder="https://drive.google.com/..."
-                                        style={{
-                                            width: '100%',
-                                            padding: '1rem 1rem 1rem 2.5rem',
-                                            borderRadius: '8px',
-                                            border: '1px solid var(--border)',
-                                            background: 'var(--surface-highlight)',
-                                            color: 'white',
-                                            fontSize: '0.95rem',
-                                            fontFamily: 'inherit'
-                                        }}
-                                    />
+                                <p style={{ fontSize: '0.85rem', color: 'var(--foreground-muted)', marginBottom: '1rem' }}>Upload your proposal deck, technical specifications, or other supporting files.</p>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div style={{
+                                        position: 'relative',
+                                        border: '2px dashed var(--border)',
+                                        borderRadius: '12px',
+                                        padding: '2rem',
+                                        textAlign: 'center',
+                                        transition: 'all 0.2s',
+                                        background: 'rgba(255,255,255,0.01)'
+                                    }}
+                                        onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                                        onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                                    >
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept=".pdf"
+                                            onChange={handleFileUpload}
+                                            style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                opacity: 0,
+                                                cursor: uploading ? 'not-allowed' : 'pointer',
+                                                width: '100%'
+                                            }}
+                                            disabled={uploading}
+                                        />
+                                        <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📄</div>
+                                        <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>
+                                            {uploading ? 'Uploading...' : 'Click or drag to upload PDFs'}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)', marginTop: '0.4rem' }}>
+                                            Maximum file size: 10MB
+                                        </div>
+                                    </div>
+
+                                    {formData.documents.length > 0 && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                            {formData.documents.map((doc, index) => (
+                                                <div key={index} style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '0.75rem 1rem',
+                                                    background: 'var(--surface-highlight)',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid var(--border)'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                                                        <span style={{ fontSize: '1rem' }}>📄</span>
+                                                        <span style={{ fontSize: '0.85rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                            {doc.name}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveDocument(index)}
+                                                        style={{
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            color: '#ef4444',
+                                                            cursor: 'pointer',
+                                                            padding: '4px',
+                                                            borderRadius: '4px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                        onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
+                                                        onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

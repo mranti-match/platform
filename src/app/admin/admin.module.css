@@ -5,6 +5,8 @@
     --foreground: #fafafa;
     --foreground-muted: #a1a1aa;
     --border: #27272a;
+    --primary: #0ea5e9;
+    --primary-hover: #0284c7;
 
     display: flex;
     min-height: 100vh;
@@ -94,7 +96,7 @@
 }
 
 .navItemActive {
-    background: rgba(217, 70, 239, 0.08);
+    background: rgba(14, 165, 233, 0.08);
     color: var(--primary);
     font-weight: 600;
     border-left: 3px solid var(--primary);
@@ -211,7 +213,7 @@
 .profileAvatar {
     width: 36px;
     height: 36px;
-    background: #d946ef;
+    background: var(--primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -270,7 +272,7 @@
 
 .btnNewPost:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(217, 70, 239, 0.3);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 }
 
 .input {
@@ -287,7 +289,52 @@
 .input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(217, 70, 239, 0.1);
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+}
+
+.btnPrimary {
+    background: var(--primary);
+    color: white;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btnPrimary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+
+.btnPrimary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btnSecondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--foreground);
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+    background: var(--surface-highlight);
+    border-color: var(--foreground-muted);
 }
 
 /* Stats Cards */
@@ -317,7 +364,7 @@
 .statIcon {
     width: 40px;
     height: 40px;
-    background: rgba(217, 70, 239, 0.1);
+    background: rgba(14, 165, 233, 0.1);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -639,6 +686,7 @@
     color: var(--foreground-muted);
     border: 1px solid var(--border);
 }
+
 /* Modern Innovator Dashboard Styles */
 .innovatorDashboard {
     max-width: 1200px;

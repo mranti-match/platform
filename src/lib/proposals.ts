@@ -21,6 +21,7 @@ export interface Proposal {
     };
     status: 'Pending' | 'Approved' | 'Rejected';
     documents_url?: string;
+    documents?: { name: string, url: string }[];
     impact_outcomes?: string;
     approved_by?: string;
     createdAt: any;

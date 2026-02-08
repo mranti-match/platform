@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, doc, updateDoc, deleteDoc, getDoc, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface ProblemStatement {
@@ -9,20 +9,37 @@ export interface ProblemStatement {
     sector: string;
     status: 'Open' | 'Closed' | 'Draft';
     createdAt: number;
+    owner_id: string;
     deadline?: string;
     image_url?: string;
 }
 
 const COLLECTION_NAME = 'problem_statements';
 
-export async function getAllProblemStatements(): Promise<ProblemStatement[]> {
+export async function getAllProblemStatements(isAdmin: boolean = false, ownerId?: string): Promise<ProblemStatement[]> {
     try {
-        const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+        let q;
+        if (isAdmin) {
+            q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
+        } else if (ownerId) {
+            q = query(collection(db, COLLECTION_NAME), where('owner_id', '==', ownerId));
+        } else {
+            // Publicly open statements
+            q = query(collection(db, COLLECTION_NAME), where('status', '==', 'Open'));
+        }
+
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
+        const results = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         } as ProblemStatement));
+
+        // Sort client-side if we used where filters which might break orderBy without index
+        if (!isAdmin) {
+            results.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        }
+
+        return results;
     } catch (error) {
         console.error('Error fetching problem statements:', error);
         return [];

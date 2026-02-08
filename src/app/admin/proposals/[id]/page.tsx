@@ -6,6 +6,7 @@ import { getProposalById, deleteProposal, updateProposalStatus, Proposal } from 
 import { getProductById, RDProduct } from '@/lib/rd-products';
 import { getProblemStatementById, ProblemStatement } from '@/lib/problem-statements';
 import { useAdmin } from '../../components/AdminProvider';
+import { useToast } from '@/app/admin/components/ToastProvider';
 import styles from '../../admin.module.css';
 import modalStyles from '@/components/Modal.module.css';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
     const { id } = use(params);
     const router = useRouter();
     const { user, role } = useAdmin();
+    const { showToast } = useToast();
     const isAdmin = role === 'Admin' || role === 'Super Admin';
     const [proposal, setProposal] = useState<Proposal | null>(null);
     const [product, setProduct] = useState<RDProduct | null>(null);
@@ -55,9 +57,9 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
         try {
             await updateProposalStatus(id, newStatus, user.uid);
             setProposal(prev => prev ? { ...prev, status: newStatus } : null);
-            alert(`Proposal ${newStatus} successfully.`);
+            showToast(`Collaboration ${newStatus} successfully.`, 'success');
         } catch (error) {
-            alert('Failed to update status');
+            showToast('Failed to update status', 'error');
         }
     };
 
@@ -67,18 +69,18 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
         setDeleting(true);
         try {
             await deleteProposal(id);
-            alert('Proposal deleted successfully.');
+            showToast('Collaboration deleted successfully.', 'info');
             router.push('/admin/proposals');
         } catch (error) {
             console.error(error);
-            alert('Failed to delete proposal.');
+            showToast('Failed to delete collaboration.', 'error');
         } finally {
             setDeleting(false);
         }
     };
 
-    if (loading) return <div style={{ padding: '2rem', color: 'var(--foreground-muted)' }}>Loading proposal details...</div>;
-    if (!proposal) return <div style={{ padding: '2rem' }}>Proposal not found.</div>;
+    if (loading) return <div style={{ padding: '2rem', color: 'var(--foreground-muted)' }}>Loading collaboration details...</div>;
+    if (!proposal) return <div style={{ padding: '2rem' }}>Collaboration not found.</div>;
 
     const isOwner = user?.uid === proposal.owner_id;
 
@@ -88,7 +90,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                 <div className={styles.welcomeSection}>
                     <div className={styles.welcomeText}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                            <Link href="/admin/proposals" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>← Back to Proposals</Link>
+                            <Link href="/admin/proposals" style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>← Back to Collaboration</Link>
                         </div>
                         <h1 style={{ fontSize: '2rem', fontWeight: 700, margin: '0 0 0.5rem 0' }}>{proposal.project_title}</h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -237,29 +239,59 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                                 </section>
                             )}
 
-                            {proposal.documents_url && (
+                            {(proposal.documents_url || (proposal.documents && proposal.documents.length > 0)) && (
                                 <section>
                                     <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--foreground)' }}>Supporting Documents</h2>
-                                    <a
-                                        href={proposal.documents_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '0.75rem',
-                                            padding: '1rem 1.5rem',
-                                            background: 'var(--surface-highlight)',
-                                            borderRadius: '8px',
-                                            color: 'var(--primary)',
-                                            textDecoration: 'none',
-                                            fontWeight: 600,
-                                            border: '1px solid var(--border)'
-                                        }}
-                                    >
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                                        View Cloud Documents
-                                    </a>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                        {/* New Format (Multiple Documents) */}
+                                        {proposal.documents && proposal.documents.map((doc, index) => (
+                                            <a
+                                                key={index}
+                                                href={doc.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.75rem',
+                                                    padding: '1rem 1.5rem',
+                                                    background: 'var(--surface-highlight)',
+                                                    borderRadius: '8px',
+                                                    color: 'var(--primary)',
+                                                    textDecoration: 'none',
+                                                    fontWeight: 600,
+                                                    border: '1px solid var(--border)'
+                                                }}
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                {doc.name}
+                                            </a>
+                                        ))}
+
+                                        {/* Legacy Format (Single Link) */}
+                                        {proposal.documents_url && (
+                                            <a
+                                                href={proposal.documents_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.75rem',
+                                                    padding: '1rem 1.5rem',
+                                                    background: 'var(--surface-highlight)',
+                                                    borderRadius: '8px',
+                                                    color: 'var(--primary)',
+                                                    textDecoration: 'none',
+                                                    fontWeight: 600,
+                                                    border: '1px solid var(--border)'
+                                                }}
+                                            >
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                                View Cloud Documents (Legacy Link)
+                                            </a>
+                                        )}
+                                    </div>
                                 </section>
                             )}
                         </div>
@@ -314,7 +346,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                                             fontSize: '1rem'
                                         }}
                                     >
-                                        Approve Proposal
+                                        Approve Collaboration
                                     </button>
                                     <button
                                         onClick={() => handleStatusUpdate('Rejected')}
@@ -330,7 +362,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                                             fontSize: '1rem'
                                         }}
                                     >
-                                        Reject Proposal
+                                        Reject Collaboration
                                     </button>
                                 </div>
                             )}
@@ -342,7 +374,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                                         className={styles.btnNewPost}
                                         style={{ width: '100%', textAlign: 'center', justifyContent: 'center' }}
                                     >
-                                        Edit Proposal
+                                        Edit Collaboration
                                     </Link>
                                     <button
                                         onClick={handleDelete}
@@ -361,7 +393,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
                                         onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
                                         onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
                                     >
-                                        {deleting ? 'Deleting...' : 'Delete Proposal'}
+                                        {deleting ? 'Deleting...' : 'Delete Collaboration'}
                                     </button>
                                 </div>
                             )}

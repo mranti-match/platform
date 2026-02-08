@@ -24,16 +24,57 @@ export default function AIMatchPage({ params }: { params: Promise<{ id: string }
                 setProduct(productData);
                 const allProblems = await getAllProblemStatements();
 
-                // Simple keyword matching algorithm
-                const industryKeywords = productData.impact_industries.join(' ') + (productData.other_industry ? ' ' + productData.other_industry : '');
-                const productWords = new Set((productData.product_name + ' ' + productData.description + ' ' + productData.uvp + ' ' + industryKeywords).toLowerCase().split(/\W+/));
+                // Advanced Weighted Matching Algorithm
+                const productIndustries = (productData.impact_industries || []).map(i => i.toLowerCase());
+                const productTitle = (productData.product_name || '').toLowerCase();
+                const productDesc = (productData.description || '').toLowerCase();
+
+                const productKeywords = new Set([
+                    ...productTitle.split(/\W+/),
+                    ...productDesc.replace(/<[^>]*>/g, ' ').split(/\W+/)
+                ].filter(w => w.length > 3));
 
                 const scoredMatches = allProblems.map(problem => {
-                    const problemWords = (problem.title + ' ' + problem.description + ' ' + problem.sector).toLowerCase().split(/\W+/);
-                    const intersection = problemWords.filter(word => word.length > 3 && productWords.has(word));
-                    const score = Math.min(Math.round((intersection.length / 5) * 100), 98); // Cap at 98 for theoretical
-                    return { ...problem, score };
-                }).filter(m => m.score > 5).sort((a, b) => b.score - a.score);
+                    let score = 0;
+                    const problemSector = (problem.sector || '').toLowerCase();
+                    const problemText = (problem.title + ' ' + problem.description).toLowerCase();
+                    const problemWords = problemText.split(/\W+/).filter(w => w.length > 3);
+
+                    // A. Sector/Industry Alignment (Weighted: 50% max)
+                    // This prevents the Healthcare-Agriculture mismatch correctly
+                    const isPrimarySectorMatch = productIndustries.some(ind =>
+                        problemSector.includes(ind) || ind.includes(problemSector)
+                    );
+
+                    if (isPrimarySectorMatch) {
+                        score += 50;
+                    } else {
+                        // Penalty for cross-industry mismatch if both have distinct sectors
+                        if (problemSector.includes('health') && productIndustries.some(ind => ind.includes('agri'))) {
+                            score -= 40; // Hard penalty
+                        }
+                        if (problemSector.includes('agri') && productIndustries.some(ind => ind.includes('health'))) {
+                            score -= 40; // Hard penalty
+                        }
+                    }
+
+                    // B. Keyword Relevance (Weighted: 40% max)
+                    const matchedKeywords = problemWords.filter(word => productKeywords.has(word));
+                    const keywordRatio = Math.min(matchedKeywords.length / 5, 1); // 5 key matches = max
+                    score += (keywordRatio * 40);
+
+                    // C. Semantic Title/Name Match (Weighted: 10% max)
+                    if (problem.title.toLowerCase().split(/\W+/).some(w => w.length > 3 && productKeywords.has(w))) {
+                        score += 10;
+                    }
+
+                    // Normalized final score (0-98%)
+                    const finalScore = Math.max(0, Math.min(Math.round(score), 98));
+
+                    return { ...problem, score: finalScore };
+                })
+                    .filter(m => m.score > 30) // Only show quality matches
+                    .sort((a, b) => b.score - a.score);
 
                 setMatches(scoredMatches);
             }

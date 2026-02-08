@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useAdmin } from '../components/AdminProvider';
+import { useToast } from '@/app/admin/components/ToastProvider';
 import { getAllProposals, deleteProposal, Proposal } from '@/lib/proposals';
 import styles from '../admin.module.css';
 import Link from 'next/link';
 
 export default function ProposalsPage() {
     const { user, role, loading: adminLoading } = useAdmin();
+    const { showToast } = useToast();
     const [proposals, setProposals] = useState<Proposal[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [userNames, setUserNames] = useState<Record<string, string>>({});
 
@@ -57,11 +60,22 @@ export default function ProposalsPage() {
             try {
                 await deleteProposal(id);
                 setProposals(prev => prev.filter(p => p.id !== id));
+                showToast('Proposal withdrawn successfully', 'info');
             } catch (error) {
-                alert('Failed to delete proposal');
+                showToast('Failed to withdraw proposal', 'error');
             }
         }
     };
+
+    // Filter proposals based on search
+    const filteredProposals = proposals.filter(proposal => {
+        const title = (proposal.project_title || proposal.product_name || '').toLowerCase();
+        const ownerName = (userNames[proposal.owner_id] || '').toLowerCase();
+        const ownerEmail = (proposal.owner_email || '').toLowerCase();
+        const query = searchQuery.toLowerCase();
+
+        return title.includes(query) || ownerName.includes(query) || ownerEmail.includes(query);
+    });
 
     if (adminLoading) return <div style={{ padding: '2rem' }}>Loading permissions...</div>;
 
@@ -69,12 +83,44 @@ export default function ProposalsPage() {
         <div className={styles.mainCol}>
             <section className={styles.welcomeSection}>
                 <div className={styles.welcomeText}>
-                    <h1>Project Proposals</h1>
-                    <p>{isAdmin ? 'Review and manage project submissions from stakeholders.' : 'Track the status of your submitted project proposals.'}</p>
+                    <h1>Collaboration</h1>
+                    <p>{isAdmin ? 'Review and manage partnership submissions from stakeholders.' : 'Track the status of your submitted collaboration proposals.'}</p>
                 </div>
             </section>
 
             <section className={styles.contentCard}>
+                <div className={styles.cardHeader} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.5rem',
+                    borderBottom: '1px solid var(--border)'
+                }}>
+                    <h2 style={{ margin: 0 }}>Active Collaborations</h2>
+                    <div style={{ position: 'relative', width: '300px' }}>
+                        <input
+                            type="text"
+                            placeholder="Search projects or owners..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.6rem 1rem 0.6rem 2.5rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-highlight)',
+                                color: 'white',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                        <svg
+                            style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
+                            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        >
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </div>
+                </div>
                 <div className={styles.tableContainer}>
                     {loading ? (
                         <div style={{ padding: '2rem', textAlign: 'center' }}>Loading proposals...</div>
@@ -89,7 +135,7 @@ export default function ProposalsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {proposals.map((proposal) => (
+                                {filteredProposals.map((proposal) => (
                                     <tr key={proposal.id}>
                                         <td className={styles.postTitleCell}>
                                             <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{proposal.project_title || proposal.product_name}</div>
@@ -135,10 +181,10 @@ export default function ProposalsPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {proposals.length === 0 && (
+                                {filteredProposals.length === 0 && (
                                     <tr>
                                         <td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>
-                                            No proposals found. {isAdmin ? 'Waiting for submissions.' : 'Match a product to submit a proposal.'}
+                                            {searchQuery ? `No collaborations matching "${searchQuery}"` : (isAdmin ? 'Waiting for submissions.' : 'Match a product to submit a proposal.')}
                                         </td>
                                     </tr>
                                 )}

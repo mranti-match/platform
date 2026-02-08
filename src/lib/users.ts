@@ -20,8 +20,15 @@ export interface AppUser {
     uid?: string; // Firebase Auth UID
     email: string;
     displayName: string;
+    fullName: string;
     role: UserRole;
     organization?: string;
+    designation?: string;
+    position?: string;
+    department?: string;
+    phoneNumber?: string;
+    bio?: string;
+    photoURL?: string;
     active: boolean;
     createdAt: any;
     lastLogin?: any;
@@ -137,10 +144,50 @@ export async function updateAppUser(id: string, userData: Partial<AppUser>) {
 
 export async function deleteAppUser(id: string) {
     try {
-        const docRef = doc(db, COLLECTION_NAME, id);
-        await deleteDoc(docRef);
+        const user = await getUserById(id);
+        if (!user) return;
+
+        const uid = user.uid;
+        const email = user.email;
+
+        // 1. Prepare for Batch Deletion
+        const { writeBatch } = await import('firebase/firestore');
+        const batch = writeBatch(db);
+
+        // A. Delete RD Products
+        const productsQ = query(collection(db, 'rd_products'), where('owner_id', 'in', [uid || 'none', email]));
+        const productSnaps = await getDocs(productsQ);
+        productSnaps.forEach(d => batch.delete(d.ref));
+
+        // B. Delete Problem Statements
+        const problemsQ = query(collection(db, 'problem_statements'), where('owner_id', 'in', [uid || 'none', email]));
+        const problemSnaps = await getDocs(problemsQ);
+        problemSnaps.forEach(d => batch.delete(d.ref));
+
+        // C. Delete Proposals (Collaboration)
+        const proposalsQ = query(collection(db, 'proposals'), where('owner_id', 'in', [uid || 'none', email]));
+        const proposalSnaps = await getDocs(proposalsQ);
+        proposalSnaps.forEach(d => batch.delete(d.ref));
+
+        // D. Delete the User Record
+        const userRef = doc(db, COLLECTION_NAME, id);
+        batch.delete(userRef);
+
+        // 2. Commit Firestore deletions
+        await batch.commit();
+
+        // 3. Cleanup Storage (Best effort)
+        if (uid) {
+            try {
+                const { deleteFolder } = await import('./storage');
+                await deleteFolder(`users/${uid}`);
+            } catch (storageError) {
+                console.warn('Storage cleanup skipped due to permissions. Manual cleanup may be required for path:', `users/${uid}`);
+            }
+        }
+
     } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error in cascading user deletion:', error);
         throw error;
     }
 }

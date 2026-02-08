@@ -4,13 +4,17 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { getProductById, updateProduct, RDProduct } from '@/lib/rd-products';
 import RDProductForm from '@/components/RDProductForm';
+import { useAdmin } from '@/app/admin/components/AdminProvider';
+import { useToast } from '@/app/admin/components/ToastProvider';
 
 export default function EditRDProductPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const { user } = useAdmin();
     const [product, setProduct] = useState<RDProduct | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const router = useRouter();
+    const { showToast } = useToast();
 
     useEffect(() => {
         async function loadData() {
@@ -34,11 +38,15 @@ export default function EditRDProductPage({ params }: { params: Promise<{ id: st
     const handleSubmit = async (data: any) => {
         setSaving(true);
         try {
-            await updateProduct(id, data);
+            await updateProduct(id, {
+                ...data,
+                owner_id: product?.owner_id // Preserve ownership
+            });
+            showToast('Product updated successfully!', 'success');
             router.push('/admin/products');
         } catch (error: any) {
             console.error('Failed to update product:', error);
-            alert(`Error: ${error.message || 'Unknown error'}`);
+            showToast(error.message || 'Failed to update product', 'error');
         } finally {
             setSaving(false);
         }
@@ -50,6 +58,7 @@ export default function EditRDProductPage({ params }: { params: Promise<{ id: st
         <RDProductForm
             key={product?.id}
             title="Update Product Information"
+            userId={user?.uid || ''}
             initialData={product}
             onSubmit={handleSubmit}
             loading={saving}

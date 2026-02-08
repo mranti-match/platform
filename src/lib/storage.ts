@@ -1,4 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, uploadBytesResumable, deleteObject, listAll } from 'firebase/storage';
 import { storage } from './firebase';
 
 /**
@@ -38,7 +38,6 @@ export function uploadFileWithProgress(
                 const progress = snapshot.totalBytes > 0
                     ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100
                     : 0;
-                console.log(`Upload progress: ${progress.toFixed(2)}% (${snapshot.bytesTransferred}/${snapshot.totalBytes})`);
                 onProgress(progress);
             },
             (error) => {
@@ -46,10 +45,40 @@ export function uploadFileWithProgress(
                 reject(error);
             },
             async () => {
-                console.log('Upload complete, fetching download URL...');
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 resolve(downloadURL);
             }
         );
     });
+}
+
+/**
+ * Deletes a file by its URL.
+ */
+export async function deleteFile(url: string) {
+    if (!url) return;
+    try {
+        const fileRef = ref(storage, url);
+        await deleteObject(fileRef);
+    } catch (error) {
+        console.error('Error deleting file:', error);
+    }
+}
+
+/**
+ * Deletes all files in a folder path.
+ */
+export async function deleteFolder(path: string) {
+    if (!path) return;
+    try {
+        const folderRef = ref(storage, path);
+        const listResult = await listAll(folderRef);
+
+        const deletePromises = listResult.items.map(item => deleteObject(item));
+        const folderPromises = listResult.prefixes.map(prefix => deleteFolder(prefix.fullPath));
+
+        await Promise.all([...deletePromises, ...folderPromises]);
+    } catch (error) {
+        console.error('Error deleting folder:', error);
+    }
 }

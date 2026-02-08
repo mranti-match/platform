@@ -32,7 +32,8 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated(); // Initial profile creation
       allow update: if isAuthenticated() && (
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'active'])) ||
+        ((request.auth.uid == userId || (resource != null && (resource.data.uid == request.auth.uid || resource.data.email == request.auth.token.email))) && 
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'active'])) ||
         isSuperAdmin()
       );
       allow delete: if isSuperAdmin();
@@ -61,12 +62,14 @@ service cloud.firestore {
     
     match /rd_products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || (isAuthenticated() && (resource.data.owner_id == request.auth.uid || resource.data.owner_id == request.auth.token.email));
     }
     
     match /problem_statements/{problemId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || (isAuthenticated() && (resource.data.owner_id == request.auth.uid || resource.data.owner_id == request.auth.token.email));
     }
     
     match /products/{productId} {
@@ -76,11 +79,11 @@ service cloud.firestore {
 
     // Proposals
     match /proposals/{proposalId} {
-      allow read: if isAuthenticated() && (resource.data.owner_id == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated() && (resource.data.owner_id == request.auth.uid || resource.data.owner_email == request.auth.token.email || isAdmin());
       allow create: if isAuthenticated();
       allow update: if isAuthenticated() && (
-        (resource.data.owner_id == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])) ||
-        isAdmin()
+        (resource.data.owner_id == request.auth.uid || resource.data.owner_email == request.auth.token.email || isAdmin()) && 
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) || isAdmin())
       );
       allow delete: if isAdmin();
     }

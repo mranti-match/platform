@@ -2,27 +2,66 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     
+    // Helper function to check if the user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper for Admin access (Simplified)
-    // Note: Cross-service rules are complex, so we rely on auth for now
-    // and recommend using specific paths for admins.
-    
-    match /images/{allPaths=**} {
+    // Helper function to check if the user is an administrator via email domain
+    // Mirroring Firestore logic for consistency
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email.matches('(?i).*@mranti\\.my$') ||
+        request.auth.token.email == 'afnizanfaizal@mranti.my'
+      );
+    }
+
+    // Helper function to check if the user is the owner of the folder
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User-specific storage structure
+    match /users/{userId} {
+      
+      // Publicly viewable assets (Product images, Profile photos)
+      // Anyone can read, but only the owner or admin can upload/modify
+      match /images/{allPaths=**} {
+        allow read: if true;
+        allow write: if isOwner(userId) || isAdmin();
+      }
+      
+      match /profiles/{allPaths=**} {
+        allow read: if true;
+        allow write: if isOwner(userId) || isAdmin();
+      }
+
+      // Private documents (PDF Proposals, sensitive files)
+      // Only the owner or admin has any access to these files
+      match /proposals/{allPaths=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+      
+      match /documents/{allPaths=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      // Default catch-all for any other files in the user's root folder
+      match /{allPaths=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Global Public Assets (Icons, site graphics, etc.)
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin(); 
+    }
+
+    // Project Proposals Documents
+    match /proposals/docs/{allPaths=**} {
       allow read: if true;
       allow write: if isAuthenticated();
-    }
-    
-    match /documents/{allPaths=**} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-    }
-    
-    match /profiles/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }

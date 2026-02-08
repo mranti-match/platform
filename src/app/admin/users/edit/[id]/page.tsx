@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { getUserById, updateAppUser, AppUser } from '@/lib/users';
+import { useToast } from '@/app/admin/components/ToastProvider';
 import UserForm from '@/components/UserForm';
 
 export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,6 +12,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const router = useRouter();
+    const { showToast } = useToast();
 
     useEffect(() => {
         async function loadData() {
@@ -19,7 +21,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
                 if (data) {
                     setUser(data);
                 } else {
-                    alert('User not found');
+                    showToast('User not found', 'error');
                     router.push('/admin/users');
                 }
             } catch (error) {
@@ -35,11 +37,12 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
         setSaving(true);
         try {
             await updateAppUser(id, data);
+            showToast('User updated successfully!', 'success');
             router.push('/admin/users');
             router.refresh();
         } catch (error: any) {
             console.error('Failed to update user:', error);
-            alert(`Error updating: ${error.message || 'Unknown error'}`);
+            showToast(error.message || 'Failed to update user', 'error');
         } finally {
             setSaving(false);
         }

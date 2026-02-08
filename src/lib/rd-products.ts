@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy, addDoc, doc, updateDoc, deleteDoc, getDoc, where, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, addDoc, doc, updateDoc, deleteDoc, getDoc, where, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from './firebase';
 
 export interface RDProduct {
@@ -13,6 +13,7 @@ export interface RDProduct {
     market_target: string;
     impact_industries: string[];
     other_industry?: string;
+    trl: string;
     owner_id: string;
     createdAt: any;
 }
@@ -23,12 +24,14 @@ export async function getAllProducts(isAdmin: boolean = false, ownerId?: string)
     try {
         let q;
         if (isAdmin) {
+            // Admins see everything
             q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'));
         } else if (ownerId) {
-            // Remove orderBy from server-side query to avoid composite index requirement
+            // Individual users see their own
             q = query(collection(db, COLLECTION_NAME), where('owner_id', '==', ownerId));
         } else {
-            return [];
+            // General matching query - usually for AI Match discovery
+            q = query(collection(db, COLLECTION_NAME), limit(50));
         }
 
         const querySnapshot = await getDocs(q);

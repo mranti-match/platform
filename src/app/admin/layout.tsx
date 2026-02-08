@@ -9,6 +9,7 @@ import Link from 'next/link';
 import styles from './admin.module.css';
 
 import AdminProvider, { useAdmin } from './components/AdminProvider';
+import ToastProvider from './components/ToastProvider';
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const { user, role, loading } = useAdmin();
@@ -66,14 +67,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                             Insights
                         </Link>
                     )}
-                    {isAdmin && (
-                        <Link href="/admin/problem-statements" className={pathname.startsWith('/admin/problem-statements') ? styles.navItemActive : styles.navItem}>
-                            <span className={styles.navIcon}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            </span>
-                            Problem Statements
-                        </Link>
-                    )}
+                    <Link href="/admin/problem-statements" className={pathname.startsWith('/admin/problem-statements') ? styles.navItemActive : styles.navItem}>
+                        <span className={styles.navIcon}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </span>
+                        Problem Statements
+                    </Link>
                     <Link href="/admin/products" className={pathname.startsWith('/admin/products') ? styles.navItemActive : styles.navItem}>
                         <span className={styles.navIcon}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -82,9 +81,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     </Link>
                     <Link href="/admin/proposals" className={pathname.startsWith('/admin/proposals') ? styles.navItemActive : styles.navItem}>
                         <span className={styles.navIcon}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </span>
-                        Project Proposals
+                        Collaboration
                     </Link>
                 </div>
 
@@ -127,7 +126,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                                 pathname.startsWith('/admin/posts') ? 'Insights' :
                                     pathname.startsWith('/admin/problem-statements') ? 'Problem Statements' :
                                         pathname.startsWith('/admin/products') ? 'R&D Products' :
-                                            pathname.startsWith('/admin/proposals') ? 'Project Proposals' :
+                                            pathname.startsWith('/admin/proposals') ? 'Collaboration' :
                                                 pathname.startsWith('/admin/users') ? 'Users' : 'Overview'}
                         </span>
                     </div>
@@ -151,7 +150,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
         <AdminProvider>
-            <AdminLayoutContent>{children}</AdminLayoutContent>
+            <ToastProvider>
+                <AdminLayoutContent>{children}</AdminLayoutContent>
+            </ToastProvider>
         </AdminProvider>
     );
 }

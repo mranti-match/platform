@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { getDatabase } from 'firebase/database';
 
@@ -24,8 +24,10 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app, firebaseConfig.databaseURL);
+const googleProvider = new GoogleAuthProvider();
 
 console.log('Firebase App Initialized:', app.name);
 console.log('Target Project:', app.options.projectId);
 
-export { db, auth, storage, rtdb };
+export { db, auth, storage, rtdb, googleProvider };
+

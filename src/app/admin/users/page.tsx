@@ -3,11 +3,23 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAllUsers, deleteAppUser, AppUser } from '@/lib/users';
+import { useToast } from '@/app/admin/components/ToastProvider';
 import styles from '../admin.module.css';
+import Modal from '@/components/Modal';
+import modalStyles from '@/components/Modal.module.css';
 
 export default function UsersPage() {
+    const { showToast } = useToast();
     const [users, setUsers] = useState<AppUser[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Modal State
+    const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; userId: string; userName: string }>({
+        isOpen: false,
+        userId: '',
+        userName: ''
+    });
 
     useEffect(() => {
         loadData();
@@ -17,7 +29,16 @@ export default function UsersPage() {
         setLoading(true);
         try {
             const data = await getAllUsers();
-            setUsers(data);
+
+            // Role-based sorting
+            const roleOrder = { 'Super Admin': 0, 'Admin': 1, 'User': 2 };
+            const sortedData = [...data].sort((a, b) => {
+                const orderA = roleOrder[a.role as keyof typeof roleOrder] ?? 99;
+                const orderB = roleOrder[b.role as keyof typeof roleOrder] ?? 99;
+                return orderA - orderB;
+            });
+
+            setUsers(sortedData);
         } catch (error) {
             console.error('Failed to load users:', error);
         } finally {
@@ -25,16 +46,25 @@ export default function UsersPage() {
         }
     };
 
-    const handleDelete = async (id: string, name: string) => {
-        if (confirm(`Are you sure you want to remove user "${name}"? This action only removes their system profile metadata.`)) {
-            try {
-                await deleteAppUser(id);
-                setUsers(prev => prev.filter(u => u.id !== id));
-            } catch (error) {
-                alert('Failed to delete user');
-            }
+    const handleDelete = async () => {
+        const { userId } = confirmDelete;
+        if (!userId) return;
+
+        try {
+            await deleteAppUser(userId);
+            setUsers(prev => prev.filter(u => u.id !== userId));
+            showToast('Stakeholder and all related data removed', 'info');
+            setConfirmDelete({ isOpen: false, userId: '', userName: '' });
+        } catch (error) {
+            showToast('Failed to delete user', 'error');
         }
     };
+
+    // Filter users based on search
+    const filteredUsers = users.filter(user =>
+        user.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className={styles.mainCol}>
@@ -49,8 +79,37 @@ export default function UsersPage() {
             </section>
 
             <section className={styles.contentCard}>
-                <div className={styles.cardHeader}>
-                    <h2>Registered Stakeholders</h2>
+                <div className={styles.cardHeader} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.5rem',
+                    borderBottom: '1px solid var(--border)'
+                }}>
+                    <h2 style={{ margin: 0 }}>Registered Stakeholders</h2>
+                    <div style={{ position: 'relative', width: '300px' }}>
+                        <input
+                            type="text"
+                            placeholder="Search by name or email..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.6rem 1rem 0.6rem 2.5rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-highlight)',
+                                color: 'white',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                        <svg
+                            style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
+                            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        >
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </div>
                 </div>
                 <div className={styles.tableContainer}>
                     {loading ? (
@@ -67,13 +126,13 @@ export default function UsersPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map((user) => (
+                                {filteredUsers.map((user) => (
                                     <tr key={user.id}>
                                         <td className={styles.postTitleCell}>
                                             <div style={{ fontWeight: 600 }}>{user.displayName}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>{user.email}</div>
                                         </td>
-                                        <td>{user.organization || '—'}</td>
+                                        <td style={{ fontSize: '0.875rem' }}>{user.organization || '—'}</td>
                                         <td>
                                             <span style={{
                                                 padding: '4px 10px',
@@ -101,11 +160,11 @@ export default function UsersPage() {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <Link href={`/admin/users/edit/${user.id}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>Edit</Link>
+                                                <Link href={`/admin/users/edit/${user.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>Edit</Link>
                                                 <span style={{ color: 'var(--border)' }}>|</span>
                                                 <button
-                                                    onClick={() => handleDelete(user.id, user.displayName)}
-                                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                                                    onClick={() => setConfirmDelete({ isOpen: true, userId: user.id, userName: user.displayName })}
+                                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.875rem' }}
                                                 >
                                                     Delete
                                                 </button>
@@ -113,10 +172,10 @@ export default function UsersPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {users.length === 0 && (
+                                {filteredUsers.length === 0 && (
                                     <tr>
                                         <td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>
-                                            No stakeholders found. <Link href="/admin/users/new" style={{ color: 'var(--primary)' }}>Add a user manually.</Link>
+                                            {searchQuery ? `No users matching "${searchQuery}"` : 'No stakeholders found.'}
                                         </td>
                                     </tr>
                                 )}
@@ -125,6 +184,53 @@ export default function UsersPage() {
                     )}
                 </div>
             </section>
+
+            <Modal
+                isOpen={confirmDelete.isOpen}
+                onClose={() => setConfirmDelete({ isOpen: false, userId: '', userName: '' })}
+                title="Confirm Deletion"
+                footer={(
+                    <>
+                        <button
+                            className={modalStyles.secondaryBtn}
+                            onClick={() => setConfirmDelete({ isOpen: false, userId: '', userName: '' })}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className={modalStyles.dangerBtn}
+                            onClick={handleDelete}
+                        >
+                            Delete Stakeholder
+                        </button>
+                    </>
+                )}
+            >
+                <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                    <div style={{
+                        width: '64px',
+                        height: '64px',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 1.5rem auto',
+                        color: '#ef4444'
+                    }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6m4-6v6" />
+                        </svg>
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', color: 'var(--foreground)', marginBottom: '1rem' }}>Remove "{confirmDelete.userName}"?</h3>
+                    <p style={{ color: 'var(--foreground-muted)', lineHeight: '1.6' }}>
+                        This action will <strong>permanently delete</strong> this stakeholder profile along with all their registered products, collaborations, and media records.
+                    </p>
+                    <p style={{ color: '#ef4444', fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem' }}>
+                        This action cannot be undone.
+                    </p>
+                </div>
+            </Modal>
         </div>
     );
 }

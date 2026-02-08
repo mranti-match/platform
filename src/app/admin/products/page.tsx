@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAdmin } from '../components/AdminProvider';
+import { useToast } from '@/app/admin/components/ToastProvider';
 import { getAllProducts, deleteProduct, RDProduct } from '@/lib/rd-products';
 import styles from '../admin.module.css';
 
 export default function RDProductsPage() {
     const { user, role, loading: adminLoading } = useAdmin();
+    const { showToast } = useToast();
     const [products, setProducts] = useState<RDProduct[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const isAdmin = role === 'Admin' || role === 'Super Admin';
 
@@ -36,11 +39,20 @@ export default function RDProductsPage() {
             try {
                 await deleteProduct(id);
                 setProducts(prev => prev.filter(p => p.id !== id));
+                showToast('Product deleted', 'info');
             } catch (error) {
-                alert('Failed to delete product');
+                showToast('Failed to delete product', 'error');
             }
         }
     };
+
+    // Filter products based on search
+    const filteredProducts = products.filter(product =>
+        (product.product_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.organization || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.ip_type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.ip_number || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     if (adminLoading) return <div style={{ padding: '2rem' }}>Loading permissions...</div>;
 
@@ -57,8 +69,37 @@ export default function RDProductsPage() {
             </section>
 
             <section className={styles.contentCard}>
-                <div className={styles.cardHeader}>
-                    <h2>{isAdmin ? 'All Commercial Products' : 'My Products'}</h2>
+                <div className={styles.cardHeader} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '1.5rem',
+                    borderBottom: '1px solid var(--border)'
+                }}>
+                    <h2 style={{ margin: 0 }}>{isAdmin ? 'All Commercial Products' : 'My Products'}</h2>
+                    <div style={{ position: 'relative', width: '300px' }}>
+                        <input
+                            type="text"
+                            placeholder="Search by name, org, or sector..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.6rem 1rem 0.6rem 2.5rem',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface-highlight)',
+                                color: 'white',
+                                fontSize: '0.875rem'
+                            }}
+                        />
+                        <svg
+                            style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
+                            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        >
+                            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </div>
                 </div>
                 <div className={styles.tableContainer}>
                     {loading ? (
@@ -75,7 +116,7 @@ export default function RDProductsPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {products.map((product) => (
+                                {filteredProducts.map((product) => (
                                     <tr key={product.id}>
                                         <td className={styles.postTitleCell}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -125,13 +166,13 @@ export default function RDProductsPage() {
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <Link href={`/admin/products/profile/${product.id}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>View Profile</Link>
+                                                <Link href={`/admin/products/profile/${product.id}`} style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem' }}>View Profile</Link>
                                                 <span style={{ color: 'var(--border)' }}>|</span>
-                                                <Link href={`/admin/products/edit/${product.id}`} style={{ color: 'var(--foreground-muted)', fontWeight: 600 }}>Edit</Link>
+                                                <Link href={`/admin/products/edit/${product.id}`} style={{ color: 'var(--foreground-muted)', fontWeight: 600, fontSize: '0.875rem' }}>Edit</Link>
                                                 <span style={{ color: 'var(--border)' }}>|</span>
                                                 <button
                                                     onClick={() => handleDelete(product.id, product.product_name)}
-                                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                                                    style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', padding: 0, fontSize: '0.875rem' }}
                                                 >
                                                     Delete
                                                 </button>
@@ -139,10 +180,10 @@ export default function RDProductsPage() {
                                         </td>
                                     </tr>
                                 ))}
-                                {products.length === 0 && (
+                                {filteredProducts.length === 0 && (
                                     <tr>
                                         <td colSpan={5} style={{ textAlign: 'center', padding: '3rem' }}>
-                                            No products found. <Link href="/admin/products/new" style={{ color: 'var(--primary)' }}>Register your first R&D product.</Link>
+                                            {searchQuery ? `No products matching "${searchQuery}"` : 'No products found.'}
                                         </td>
                                     </tr>
                                 )}
