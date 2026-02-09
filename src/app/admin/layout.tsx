@@ -73,12 +73,20 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                         </span>
                         Problem Statements
                     </Link>
-                    <Link href="/admin/products" className={pathname.startsWith('/admin/products') ? styles.navItemActive : styles.navItem}>
+                    <Link href="/admin/products" className={pathname.startsWith('/admin/products') && pathname !== '/admin/products/claim' ? styles.navItemActive : styles.navItem}>
                         <span className={styles.navIcon}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                         </span>
                         R&D Products
                     </Link>
+                    {!isAdmin && pathname.startsWith('/admin/products') && (
+                        <Link href="/admin/products/claim" className={pathname === '/admin/products/claim' ? styles.navItemActive : styles.navItem} style={{ paddingLeft: '2.5rem', fontSize: '0.85rem' }}>
+                            <span className={styles.navIcon}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                            </span>
+                            Claim your Product
+                        </Link>
+                    )}
                     <Link href="/admin/proposals" className={pathname.startsWith('/admin/proposals') ? styles.navItemActive : styles.navItem}>
                         <span className={styles.navIcon}>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -87,14 +95,22 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     </Link>
                 </div>
 
-                {isSuperAdmin && (
+                {isAdmin && (
                     <div className={styles.navGroup}>
                         <h3 className={styles.groupTitle}>MANAGEMENT</h3>
-                        <Link href="/admin/users" className={pathname.startsWith('/admin/users') ? styles.navItemActive : styles.navItem}>
+                        {isSuperAdmin && (
+                            <Link href="/admin/users" className={pathname.startsWith('/admin/users') ? styles.navItemActive : styles.navItem}>
+                                <span className={styles.navIcon}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                </span>
+                                Users
+                            </Link>
+                        )}
+                        <Link href="/admin/products/claims" className={pathname.startsWith('/admin/products/claims') ? styles.navItemActive : styles.navItem}>
                             <span className={styles.navIcon}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="m9 12 2 2 4-4" /></svg>
                             </span>
-                            Users
+                            Product Claims
                         </Link>
                     </div>
                 )}
