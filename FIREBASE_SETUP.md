@@ -43,6 +43,22 @@ To connect your blog to a real Firebase database, follow these steps:
         *   `createdAt` (number, use Timestamp or Date.now())
 
 The app will automatically switch from Mock data to Live data once it detects posts in Firestore!
-7.  **Enable Firebase Storage CORS**:
+
+7.  **Setup Security Rules (CRITICAL)**:
+    *   To ensure your app remains accessible after the 30-day "Test Mode" period, you must configure permanent security rules.
+    *   **Firestore Rules**:
+        1. Go to **Build > Firestore Database > Rules**.
+        2. Copy the content from `firestore.rules` in your project root and paste it here.
+        3. Click **Publish**.
+    *   **Realtime Database Rules**:
+        1. Go to **Build > Realtime Database > Rules**.
+        2. Copy the content from `database.rules.json` in your project root and paste it here.
+        3. Click **Publish**.
+    *   **Storage Rules**:
+        1. Go to **Build > Storage > Rules**.
+        2. Copy the content from `storage.rules` in your project root and paste it here.
+        3. Click **Publish**.
+
+8.  **Enable Firebase Storage CORS**:
     *   Firebase Storage requires a CORS policy to allow uploads from your local development environment.
     *   See the [Firebase Storage CORS Guide](file:///Users/afnizanfaizal/.gemini/antigravity/brain/680b8839-bc8e-4c2e-9092-2fd7b7f613af/FIREBASE_STORAGE_CORS.md) for detailed instructions.
