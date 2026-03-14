@@ -1,6 +1,10 @@
 {
-    "rules": {
-        ".read": true,
-        ".write": "auth != null && auth.token.email.matches(/.*@mranti\\.my$/)"
+  "rules": {
+    ".read": "auth != null && auth.token.email.matches(/.*@mranti\\.my$/)",
+    ".write": "auth != null && auth.token.email.matches(/.*@mranti\\.my$/)",
+    "products": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email.matches(/.*@mranti\\.my$/)"
     }
+  }
 }
